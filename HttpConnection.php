@@ -613,6 +613,7 @@ class CurlConnection extends HttpConnection {
         break;
 
       case 'file':
+        clearstatcache(TRUE, $file);
         $fh = fopen($file, 'r');
         $size = filesize($file);
         curl_setopt(self::$curlContext, CURLOPT_PUT, TRUE);
