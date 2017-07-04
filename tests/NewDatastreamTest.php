@@ -124,6 +124,7 @@ class NewDatastreamTest extends TestCase {
     $this->m->checksum = 'not this';
     $this->assertEquals('not this', $this->m->checksum);
     $this->object->ingestDatastream($this->m);
+    $this->repository->ingestObject($this->object);
   }
 
 }
