@@ -121,9 +121,8 @@ class NewDatastreamTest extends TestCase {
   public function testSetChecksumBad() {
     $this->m->content = 'foo';
     $this->m->checksumType = 'MD5';
-    $bar_md5 = md5('bar');
-    $this->m->checksum = $bar_md5;
-    $this->assertEquals($bar_md5, $this->m->checksum);
+    $this->m->checksum = 'not this';
+    $this->assertEquals('not this', $this->m->checksum);
     $this->object->ingestDatastream($this->m);
   }
 
