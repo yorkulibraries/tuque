@@ -842,6 +842,7 @@ class FedoraObject extends AbstractFedoraObject {
         'dsState' => $ds->state,
         'formatURI' => $ds->format,
         'checksumType' => $ds->checksumType,
+        'checksum' => $ds->checksum,
         'mimeType' => $ds->mimetype,
         // Assume NewFedoraObjects will have a log message set.
         'logMessage' => ($ds instanceof NewFedoraObject) ?
