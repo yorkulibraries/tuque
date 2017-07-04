@@ -103,4 +103,28 @@ class NewDatastreamTest extends TestCase {
     $this->assertEquals('foo', file_get_contents($temp));
     unlink($temp);
   }
+
+  public function testSetChecksumGood() {
+    $this->m->content = 'foo';
+    $this->m->checksumType = 'MD5';
+    $foo_md5 = md5('foo');
+    $this->m->checksum = $foo_md5;
+    $this->assertEquals($foo_md5, $this->m->checksum);
+    $this->object->ingestDatastream($this->m);
+    $this->assertEquals($foo_md5, $this->object[$this->m->id]->checksum);
+  }
+
+  /**
+   * @expectedException     RepositoryException
+   * @expectedExceptionCode 500
+   */
+  public function testSetChecksumBad() {
+    $this->m->content = 'foo';
+    $this->m->checksumType = 'MD5';
+    $bar_md5 = md5('bar');
+    $this->m->checksum = $bar_md5;
+    $this->assertEquals($bar_md5, $this->m->checksum);
+    $this->object->ingestDatastream($this->m);
+  }
+
 }
