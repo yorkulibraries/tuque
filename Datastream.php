@@ -680,6 +680,7 @@ class NewFedoraDatastream extends AbstractFedoraDatastream {
 
       case 'set':
         $this->datastreamInfo['dsChecksum'] = $value;
+        break;
 
       case 'unset':
         $this->datastreamInfo['dsChecksum'] = 'none';
