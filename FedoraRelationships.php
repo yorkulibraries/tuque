@@ -266,6 +266,7 @@ abstract class FedoraRelationships extends MagicProperty {
       $this->datastream->content = $document->saveXml();
       if ($this->new) {
         $this->datastream->parent->ingestDatastream($this->datastream);
+        $this->new = FALSE;
       }
     }
     else {

@@ -35,3 +35,8 @@ class RepositoryBadArguementException extends RepositoryException {}
  * This is thrown from the relationships class when something goes wrong
  */
 class RepositoryRelationshipsException extends RepositoryException {}
+
+/**
+ * This is thrown when a datastream already exists and attempted to be ingested.
+ */
+class DatastreamExistsException extends RepositoryException{}
