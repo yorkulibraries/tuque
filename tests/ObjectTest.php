@@ -249,4 +249,13 @@ class ObjectTest extends TestCase {
     $this->object->purgeDatastream($ds->id);
     $this->object->label = 'foo';
   }
+
+  /**
+   * @expectedException DatastreamExistsException
+   */
+  public function testDatastreamIngestOnExistingDatastream() {
+    $new_ds = $this->object->constructDatastream($this->testDsid, 'M');
+    $this->object->ingestDatastream($new_ds);
+  }
+
 }
