@@ -851,6 +851,9 @@ class FedoraObject extends AbstractFedoraObject {
       // Assume NewFedoraDatastreams will have a log message set.
       'logMessage' => ($ds instanceof NewFedoraDatastream) ? $ds->logMessage : "Copied datastream from {$ds->parent->id}.",
     );
+    if (isset($ds->checksum)) {
+      $params['checksum'] = $ds->checksum;
+    }
     $temp = tempnam(sys_get_temp_dir(), 'tuque');
     if ($ds->controlGroup == 'E' || $ds->controlGroup == 'R' || $ds->getContent($temp) !== TRUE) {
       $type = 'url';
