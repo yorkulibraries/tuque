@@ -16,7 +16,7 @@ tar xf islandora_tomcat.$FEDORA_VERSION.tar.gz
 cd islandora_tomcat
 export CATALINA_HOME='.'
 export FEDORA_HOME=fedora
-export JAVA_OPTS="-Xms1024m -Xmx1024m -XX:MaxPermSize=512m -XX:+CMSClassUnloadingEnabled -Djavax.net.ssl.trustStore=$CATALINA_HOME/fedora/server/truststore -Djavax.net.ssl.trustStorePassword=tomcat"
+export JAVA_OPTS="-Xms1024m -Xmx1024m -XX:MaxPermSize=512m -XX:+CMSClassUnloadingEnabled"
 
 # Needed for Fedora 3.8.1
 if [ $FEDORA_VERSION = "3.8.1" ]; then
