@@ -8,7 +8,16 @@ require_once 'Repository.php';
 require_once 'Cache.php';
 require_once 'TestHelpers.php';
 
-class NewDatastreamTest extends PHPUnit_Framework_TestCase {
+use \PHPUnit\Framework\TestCase;
+use \PHPUnit\Framework\Error\Error;
+
+// XXX: PHPUnit6 moved the location of the Error class. 
+// This can be dropped when we drop support for PHP < 7.0 in our testing.
+if (class_exists('\PHPUnit\Framework\Error\Error', TRUE)) {
+  class_alias('\PHPUnit\Framework\Error\Error', 'PHPUnit_Framework_Error');
+}
+
+class NewDatastreamTest extends TestCase {
 
   protected function setUp() {
     $connection = new RepositoryConnection(FEDORAURL, FEDORAUSER, FEDORAPASS);
@@ -94,4 +103,27 @@ class NewDatastreamTest extends PHPUnit_Framework_TestCase {
     $this->assertEquals('foo', file_get_contents($temp));
     unlink($temp);
   }
+
+  public function testSetChecksumGood() {
+    $this->m->content = 'foo';
+    $this->m->checksumType = 'MD5';
+    $foo_md5 = md5('foo');
+    $this->m->checksum = $foo_md5;
+    $this->assertEquals($foo_md5, $this->m->checksum);
+    $this->object->ingestDatastream($this->m);
+    $this->assertEquals($foo_md5, $this->object[$this->m->id]->checksum);
+  }
+
+  /**
+   * @expectedException     RepositoryException
+   * @expectedExceptionCode 500
+   */
+  public function testSetChecksumBad() {
+    $this->m->content = 'foo';
+    $this->m->checksumType = 'MD5';
+    $this->m->checksum = 'not this';
+    $this->assertEquals('not this', $this->m->checksum);
+    $this->object->ingestDatastream($this->m);
+  }
+
 }

@@ -680,6 +680,7 @@ class NewFedoraDatastream extends AbstractFedoraDatastream {
 
       case 'set':
         $this->datastreamInfo['dsChecksum'] = $value;
+        break;
 
       case 'unset':
         $this->datastreamInfo['dsChecksum'] = 'none';
@@ -1086,6 +1087,13 @@ class FedoraDatastreamVersion extends AbstractExistingFedoraDatastream {
    */
   protected function checksumMagicProperty($function, $value) {
     return $this->generalReadOnly('dsChecksum', 'none', $function, $value);
+  }
+
+  /**
+   * @see AbstractDatastream::checksumType
+   */
+  protected function checksumTypeMagicProperty($function, $value) {
+    return $this->generalReadOnly('dsChecksumType', 'DISABLED', $function, $value);
   }
 
   /**

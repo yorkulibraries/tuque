@@ -8,13 +8,17 @@ require_once 'Repository.php';
 require_once 'Cache.php';
 require_once 'TestHelpers.php';
 
-class DatastreamTest extends PHPUnit_Framework_TestCase {
+use \PHPUnit\Framework\TestCase;
+
+class DatastreamTest extends TestCase {
 
   protected function setUp() {
     $connection = new RepositoryConnection(FEDORAURL, FEDORAUSER, FEDORAPASS);
     $this->api = new FedoraApi($connection);
     $cache = new SimpleCache();
     $this->repository = new FedoraRepository($this->api, $cache);
+    $describe = $this->api->a->describeRepository();
+    $this->fedoraVersion = isset($describe['repositoryVersion']) ? $describe['repositoryVersion'] : NULL;
 
     // create an object
     $string1 = FedoraTestHelpers::randomString(10);
@@ -202,7 +206,22 @@ class DatastreamTest extends PHPUnit_Framework_TestCase {
     $this->assertEquals(3, $newds->size);
   }
 
-  public function testContentSetUrl() {
+  public function testContentSetUrlHttp() {
+    $temp = tempnam(sys_get_temp_dir(), 'tuque');
+    $this->ds->setContentFromUrl(LOC_HTTP_URL);
+    $actual = file_get_contents(LOC_HTTP_URL);
+    $this->assertEquals($actual, $this->ds->content);
+    $this->ds->getContent($temp);
+    $this->assertEquals($actual, file_get_contents($temp));
+    unlink($temp);
+  }
+
+  public function testContentSetUrlHttps() {
+    // Get the Fedora version as there is currently a bug that needs
+    // investigation in 3.6.2 that breaks the tests otherwise.
+    if ($this->fedoraVersion === '3.6.2') {
+      $this->markTestSkipped('Is a bug in 3.6.2 that requires investigation.');
+    }
     $temp = tempnam(sys_get_temp_dir(), 'tuque');
     $this->ds->setContentFromUrl(TEST_PNG_URL);
     $actual = file_get_contents(TEST_PNG_URL);
@@ -242,7 +261,29 @@ class DatastreamTest extends PHPUnit_Framework_TestCase {
     $this->assertEquals('<testFixture></testFixture>', trim($newds->content));
   }
 
-  public function testContentXFromUrl() {
+  public function testContentXFromUrlHttpLoc() {
+    $file = getcwd() . '/tests/test_data/loc.xml';
+    $data = file_get_contents($file);
+    $this->x->setContentFromUrl(LOC_HTTP_URL);
+    $newds = new FedoraDatastream($this->testDsidX, $this->object, $this->repository);
+    $this->assertEquals(trim($data), trim($newds->content));
+  }
+
+  /**
+   * @expectedException        RepositoryException
+   */
+  public function testContentXFromUrlHttpsLoc() {
+    $file = getcwd() . '/tests/test_data/loc.xml';
+    $data = file_get_contents($file);
+    $this->x->setContentFromUrl(LOC_HTTPS_URL);
+    $newds = new FedoraDatastream($this->testDsidX, $this->object, $this->repository);
+    $this->assertEquals(trim($data), trim($newds->content));
+  }
+
+  /**
+   * @expectedException        RepositoryException
+   */
+  public function testContentXFromUrlHttps() {
     $data = <<<foo
 <woo>
   <test>
@@ -253,6 +294,26 @@ foo;
     $this->x->setContentFromUrl(TEST_XML_URL);
     $newds = new FedoraDatastream($this->testDsidX, $this->object, $this->repository);
     $this->assertEquals($data, trim($newds->content));
+  }
+
+  public function testContentMFromHttpsUrl() {
+    // Get the Fedora version as there is currently a bug that needs
+    // investigation in 3.6.2 that breaks the tests otherwise.
+    if ($this->fedoraVersion === '3.6.2') {
+      $this->markTestSkipped('Is a bug in 3.6.2 that requires investigation.');
+    }
+    $data = <<<foo
+<woo>
+  <test>
+    <xml></xml>
+  </test>
+</woo>
+foo;
+    $new_ds = $this->object->constructDatastream('fcreporocks', 'M');
+    $new_ds->content = '<om>nom</om>';
+    $this->object->ingestDatastream($new_ds);
+    $this->object[$new_ds->id]->setContentFromUrl(TEST_XML_URL);
+    $this->assertEquals($data, trim($new_ds->content));
   }
 
   public function testVersions() {
@@ -331,7 +392,7 @@ foo;
    * open references to the same object.  This should be investigated.
    *
    * @expectedException        RepositoryException
-   * @expectedExceptionCode 500
+   * @expectedExceptionCode 409
    */
   public function testLocking() {
     $ds1 = new FedoraDatastream($this->testDsid, $this->object, $this->repository);
@@ -376,5 +437,19 @@ foo;
       return;
     }
     $this->fail();
+  }
+
+  public function testDatastreamVersionPropertiesExistWithDefaultValues() {
+    $new_ds = $this->object->constructDatastream('woot', 'M');
+    $new_ds->mimeType = 'text/plain';
+    $new_ds->content = 'initial version';
+    $this->object->ingestDatastream($new_ds);
+    $new_ds->content = 'version 2';
+
+    foreach ($this->object['woot'] as $ds) {
+      $this->assertEquals($ds->checksum, 'none');
+      $this->assertEquals($ds->checksumType, 'DISABLED');
+    }
+
   }
 }
